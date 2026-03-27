@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.Python
+*.egg-info/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Large model files (download separately)
+models/**/*.zip
+models/**/*.pt
+*.zip
+
+# Logs (can be regenerated)
+logs/
+
+# Results (keep JSON, ignore plots)
+results/*.png
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
