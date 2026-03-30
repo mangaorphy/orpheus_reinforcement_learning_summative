@@ -387,30 +387,31 @@ class SavannaAcousticEnv(gym.Env):
                         reward += 5.0
                     found_new = True
                     self.resolved_threats += 1
+                # Auto-alert any confirmed but unalerted threat in range
+                if dist <= SENSOR_RANGE and t["confirmed"] and not t["alerted"]:
+                    t["alerted"] = True
+                    reward += 8.0
 
             if not found_new:
                 reward -= 2.0   # wasted scan
 
         # ── ALERT action ──────────────────────────────────────────────────
         elif action == ACTION_ALERT:
-            if self.scan_ready:
-                # Reward proportional to nearby confirmed threats
-                nearby_conf = sum(
-                    1 for t in self.threats
-                    if t["confirmed"] and not t["alerted"] and
-                    np.sqrt((ax-t["pos"][0])**2 + (ay-t["pos"][1])**2) <= SENSOR_RANGE
-                )
-                if nearby_conf > 0:
-                    reward += 8.0 * nearby_conf
-                    for t in self.threats:
-                        if (t["confirmed"] and not t["alerted"] and
-                                np.sqrt((ax-t["pos"][0])**2+(ay-t["pos"][1])**2) <= SENSOR_RANGE):
-                            t["alerted"] = True
-                else:
-                    reward -= 3.0   # false alarm
+            # Reward for any confirmed nearby threats not yet alerted
+            nearby_conf = sum(
+                1 for t in self.threats
+                if t["confirmed"] and not t["alerted"] and
+                np.sqrt((ax-t["pos"][0])**2 + (ay-t["pos"][1])**2) <= SENSOR_RANGE
+            )
+            if nearby_conf > 0:
+                reward += 8.0 * nearby_conf
+                for t in self.threats:
+                    if (t["confirmed"] and not t["alerted"] and
+                            np.sqrt((ax-t["pos"][0])**2+(ay-t["pos"][1])**2) <= SENSOR_RANGE):
+                        t["alerted"] = True
                 self.scan_ready = False
             else:
-                reward -= 3.0       # alerting without scanning
+                reward -= 3.0   # false alarm
 
         # ── HOVER action ──────────────────────────────────────────────────
         elif action == ACTION_HOVER:

@@ -1,0 +1,23 @@
+[
+  {
+    "algorithm": "REINFORCE",
+    "run_id": 1,
+    "config_name": "rf_baseline",
+    "notes": "Standard + baseline",
+    "mean_reward": -106.67276763916016,
+    "std_reward": 18.19388771057129,
+    "training_time_s": 107.51289796829224,
+    "hyperparameters": {
+      "name": "rf_baseline",
+      "lr": 0.001,
+      "gamma": 0.99,
+      "baseline": true,
+      "ent_coef": 0.01,
+      "arch": [
+        128,
+        128
+      ],
+      "notes": "Standard + baseline"
+    },
+    "episode_rewards": [
+      

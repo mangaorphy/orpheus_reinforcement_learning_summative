@@ -1,0 +1,130 @@
+
+<div style="padding: 1rem 0;">
+
+<div style="display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:12px; margin-bottom:1.5rem;">
+  <div style="background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:1rem; text-align:center;">
+    <div style="font-size:13px; color:var(--color-text-secondary); margin-bottom:4px;">DQN best</div>
+    <div style="font-size:22px; font-weight:500; color:var(--color-text-success);">50.5</div>
+    <div style="font-size:11px; color:var(--color-text-secondary);">best_tuned</div>
+  </div>
+  <div style="background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:1rem; text-align:center;">
+    <div style="font-size:13px; color:var(--color-text-secondary); margin-bottom:4px;">PPO best</div>
+    <div style="font-size:22px; font-weight:500; color:var(--color-text-info);">48.6</div>
+    <div style="font-size:11px; color:var(--color-text-secondary);">ppo_low_gae</div>
+  </div>
+  <div style="background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:1rem; text-align:center;">
+    <div style="font-size:13px; color:var(--color-text-secondary); margin-bottom:4px;">A2C best</div>
+    <div style="font-size:22px; font-weight:500; color:var(--color-text-warning);">8.3</div>
+    <div style="font-size:11px; color:var(--color-text-secondary);">a2c_entropy</div>
+  </div>
+  <div style="background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:1rem; text-align:center;">
+    <div style="font-size:13px; color:var(--color-text-secondary); margin-bottom:4px;">REINFORCE best</div>
+    <div style="font-size:22px; font-weight:500; color:var(--color-text-danger);">-106.7</div>
+    <div style="font-size:11px; color:var(--color-text-secondary);">rf_baseline</div>
+  </div>
+</div>
+
+<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:1rem; font-size:12px;">
+  <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#3266ad;display:inline-block;"></span>DQN</span>
+  <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#1D9E75;display:inline-block;"></span>PPO</span>
+  <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#BA7517;display:inline-block;"></span>A2C</span>
+  <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#7F77DD;display:inline-block;"></span>REINFORCE</span>
+</div>
+
+<div style="position:relative; width:100%; height:320px;">
+  <canvas id="mainChart"></canvas>
+</div>
+
+<div style="margin-top:1.5rem; border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-lg); overflow:hidden;">
+  <table style="width:100%; border-collapse:collapse; font-size:13px;">
+    <thead>
+      <tr style="background:var(--color-background-secondary);">
+        <th style="padding:8px 12px; text-align:left; font-weight:500; color:var(--color-text-secondary);">Rank</th>
+        <th style="padding:8px 12px; text-align:left; font-weight:500; color:var(--color-text-secondary);">Config</th>
+        <th style="padding:8px 12px; text-align:left; font-weight:500; color:var(--color-text-secondary);">Algorithm</th>
+        <th style="padding:8px 12px; text-align:right; font-weight:500; color:var(--color-text-secondary);">Mean reward</th>
+        <th style="padding:8px 12px; text-align:right; font-weight:500; color:var(--color-text-secondary);">Std</th>
+      </tr>
+    </thead>
+    <tbody id="rankTable"></tbody>
+  </table>
+</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const allRuns = [
+  {algo:'DQN',   name:'best_tuned',   r:50.53, std:12.37},
+  {algo:'DQN',   name:'fast_target',  r:41.51, std:9.92},
+  {algo:'DQN',   name:'low_gamma',    r:41.23, std:8.15},
+  {algo:'DQN',   name:'baseline',     r:40.34, std:18.51},
+  {algo:'DQN',   name:'high_lr',      r:40.33, std:11.54},
+  {algo:'DQN',   name:'large_buf',    r:38.15, std:9.74},
+  {algo:'DQN',   name:'large_batch',  r:37.57, std:19.45},
+  {algo:'DQN',   name:'soft_update',  r:34.70, std:20.63},
+  {algo:'DQN',   name:'deep_net',     r:30.90, std:13.47},
+  {algo:'DQN',   name:'long_explore', r:26.87, std:20.94},
+  {algo:'PPO',   name:'ppo_low_gae',  r:48.62, std:19.69},
+  {algo:'PPO',   name:'ppo_entropy',  r:43.15, std:19.25},
+  {algo:'PPO',   name:'ppo_baseline', r:34.55, std:35.70},
+  {algo:'PPO',   name:'ppo_more_ep',  r:31.73, std:32.78},
+  {algo:'PPO',   name:'ppo_hi_clip',  r:23.68, std:25.55},
+  {algo:'PPO',   name:'ppo_lg_steps', r:10.18, std:31.62},
+  {algo:'PPO',   name:'ppo_sm_steps', r:9.00,  std:43.10},
+  {algo:'PPO',   name:'ppo_best',     r:4.56,  std:23.90},
+  {algo:'PPO',   name:'ppo_lo_clip',  r:2.43,  std:35.59},
+  {algo:'PPO',   name:'ppo_high_vf',  r:-4.96, std:72.42},
+  {algo:'A2C',   name:'a2c_entropy',  r:8.33,  std:6.48},
+  {algo:'A2C',   name:'a2c_high_vf',  r:6.98,  std:10.02},
+  {algo:'A2C',   name:'a2c_baseline', r:6.64,  std:10.51},
+  {algo:'A2C',   name:'a2c_gradclip', r:1.69,  std:27.03},
+  {algo:'A2C',   name:'a2c_low_gam',  r:3.70,  std:33.52},
+  {algo:'A2C',   name:'a2c_steps20',  r:-2.07, std:20.63},
+  {algo:'A2C',   name:'a2c_high_lr',  r:-2.22, std:20.08},
+  {algo:'A2C',   name:'a2c_gae',      r:-13.33,std:25.11},
+  {algo:'A2C',   name:'a2c_best',     r:-52.72,std:8.01},
+  {algo:'A2C',   name:'a2c_deep',     r:-51.51,std:7.36},
+  {algo:'RF',    name:'rf_baseline',  r:-106.7,std:18.19},
+];
+
+const algoColor = {DQN:'#3266ad', PPO:'#1D9E75', A2C:'#BA7517', RF:'#7F77DD'};
+
+const sorted = [...allRuns].sort((a,b)=>b.r-a.r);
+const tbody = document.getElementById('rankTable');
+sorted.slice(0,10).forEach((run,i)=>{
+  const rc = run.r >= 0 ? '#1D9E75' : '#E24B4A';
+  tbody.innerHTML += `<tr style="border-top:0.5px solid var(--color-border-tertiary);">
+    <td style="padding:7px 12px; color:var(--color-text-secondary);">${i+1}</td>
+    <td style="padding:7px 12px; font-weight:500;">${run.name}</td>
+    <td style="padding:7px 12px;"><span style="background:${algoColor[run.algo]}22;color:${algoColor[run.algo]};padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500;">${run.algo}</span></td>
+    <td style="padding:7px 12px; text-align:right; font-weight:500; color:${rc};">${run.r.toFixed(1)}</td>
+    <td style="padding:7px 12px; text-align:right; color:var(--color-text-secondary);">±${run.std.toFixed(1)}</td>
+  </tr>`;
+});
+
+const labels = allRuns.map(r=>r.name);
+const bgColors = allRuns.map(r=>algoColor[r.algo]+'cc');
+new Chart(document.getElementById('mainChart'),{
+  type:'bar',
+  data:{
+    labels,
+    datasets:[{
+      label:'Mean reward',
+      data: allRuns.map(r=>r.r),
+      backgroundColor: bgColors,
+      borderColor: allRuns.map(r=>algoColor[r.algo]),
+      borderWidth:1,
+      borderRadius:3,
+    }]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`Reward: ${c.parsed.y.toFixed(1)}`}}},
+    scales:{
+      x:{ticks:{font:{size:9},maxRotation:60,color:'#888'},grid:{color:'rgba(128,128,128,0.1)'}},
+      y:{ticks:{color:'#888'},grid:{color:'rgba(128,128,128,0.15)'},title:{display:true,text:'Mean reward',color:'#888',font:{size:11}}}
+    }
+  }
+});
+</script>

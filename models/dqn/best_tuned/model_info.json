@@ -1,0 +1,9 @@
+{
+  "algorithm": "DQN",
+  "config_name": "best_tuned",
+  "mean_reward": 40.253967800000005,
+  "std_reward": 24.156085679548685,
+  "numpy_version": "1.26.4",
+  "sb3_version": "2.3.2",
+  "torch_version": "2.2.2+cpu"
+}

@@ -48,25 +48,44 @@ def load_sb3_model(algo: str, config_name: str):
     """Load a Stable-Baselines3 model (DQN/PPO/A2C)."""
     from stable_baselines3 import DQN, PPO, A2C
     algo_map = {"dqn": DQN, "ppo": PPO, "a2c": A2C}
+    cls = algo_map[algo]
 
-    model_dir  = os.path.join(ROOT, "models", algo if algo != "dqn" else "dqn",
-                               algo, config_name)
-    # Try best_model first, then final_model
-    for fname in ["best_model", "final_model"]:
-        path = os.path.join(ROOT, "models",
-                            "dqn" if algo == "dqn" else "pg",
-                            algo, config_name, fname)
-        if os.path.exists(path + ".zip"):
-            cls = algo_map[algo]
-            print(f"  Loading {algo.upper()} model: {path}.zip")
-            return cls.load(path)
+    # DQN lives at:  models/dqn/<config_name>/
+    # PPO/A2C live at: models/pg/<algo>/<config_name>/
+    if algo == "dqn":
+        search_roots = [
+            os.path.join(ROOT, "models", "dqn", config_name),
+        ]
+    else:
+        search_roots = [
+            os.path.join(ROOT, "models", "pg", algo, config_name),
+        ]
 
-    # Fallback: search for any .zip in pg/algo or dqn directories
-    base = os.path.join(ROOT, "models", "dqn" if algo == "dqn" else "pg")
-    zips = glob.glob(os.path.join(base, "**", "*.zip"), recursive=True)
+    # Try best_model then final_model in the correct folder
+    for root in search_roots:
+        for fname in ["best_model", "final_model"]:
+            path = os.path.join(root, fname)
+            if os.path.exists(path + ".zip"):
+                print(f"  Loading {algo.upper()} model: {path}.zip")
+                return cls.load(path)
+
+    # Fallback: search entire models/dqn or models/pg tree
+    # but ONLY load files from the requested config folder
+    if algo == "dqn":
+        base = os.path.join(ROOT, "models", "dqn")
+    else:
+        base = os.path.join(ROOT, "models", "pg", algo)
+
+    # Look for config_name folder specifically first
+    zips = glob.glob(os.path.join(base, config_name, "*.zip"), recursive=False)
+    if not zips:
+        # Last resort — any zip but warn user
+        zips = glob.glob(os.path.join(base, "**", "*.zip"), recursive=True)
+        if zips:
+            print(f"  WARNING: '{config_name}' not found, loading: {zips[0]}")
+
     if zips:
-        cls = algo_map[algo]
-        print(f"  Loading fallback model: {zips[0]}")
+        print(f"  Loading model: {zips[0]}")
         return cls.load(zips[0])
 
     return None
@@ -188,7 +207,11 @@ def run_episode(model, algo: str, env: SavannaAcousticEnv,
             )
 
         if env.render_mode:
-            env.render()
+            if env.renderer is None:
+                from environment.rendering import SavannaRenderer
+                env.renderer = SavannaRenderer(env.grid_size)
+            env.renderer.render(env, env.render_mode,
+                                last_reward=reward, last_action=action)
 
         step += 1
 
@@ -343,13 +366,23 @@ def main():
     print(f"    Max steps    : 500")
     print(f"    Threats/ep   : 5")
 
+    # Pre-init renderer so window appears immediately
+    if render_mode == "human":
+        from environment.rendering import SavannaRenderer
+        env.renderer = SavannaRenderer(env.grid_size)
+        env.renderer._init()
+
     # Run evaluation episodes
     all_ep_results = []
     for ep in range(1, args.episodes + 1):
+        # Clear trail between episodes
+        if render_mode == "human" and env.renderer:
+            env.renderer._trail.clear()
+            env.renderer._cumulative_reward = 0.0
         result = run_episode(model, args.algo, env, ep, verbose=True)
         all_ep_results.append(result)
         if render_mode == "human":
-            time.sleep(0.5)   # brief pause between episodes
+            time.sleep(1.0)   # pause between episodes so you can see the result
 
     env.close()
 
