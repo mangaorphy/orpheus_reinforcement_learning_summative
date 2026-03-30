@@ -20,7 +20,6 @@ models/**/*.pt
 logs/
 
 # Results (keep JSON, ignore plots)
-results/*.png
 
 # Jupyter checkpoints
 .ipynb_checkpoints/
