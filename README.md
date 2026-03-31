@@ -8,6 +8,10 @@
 
 ## Demo
 
+[![Watch the Demo](https://img.youtube.com/vi/1AdjfBYqBpQ/maxresdefault.jpg)](https://youtu.be/1AdjfBYqBpQ)
+
+> Click the thumbnail above to watch the 3-minute agent demo on YouTube.
+
 | OpenGL 3D Environment | Algorithm Comparison |
 |:---:|:---:|
 | ![3D Environment](results/opengl_demo.png) | ![Algorithm Comparison](results/algorithm_comparison.png) |
