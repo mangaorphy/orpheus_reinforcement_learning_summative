@@ -12,8 +12,8 @@ venv/
 env/
 
 # Large model files (download separately)
-models/**/*.zip
-models/**/*.pt
+# models/**/*.zip
+# models/**/*.pt
 *.zip
 
 # Logs (can be regenerated)
